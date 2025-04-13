@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="user-head">
+    <h1>{{ user.name }}</h1>
+    <a class="navbar-brand" href="/settings">Настройки</a>
+</div>
+<div class="info-card">
+    <p>{{ user.create_date }}</p>
+    {% if user.abot %}
+       <p>{{ user.about }}</p>
+    {% endif %}
+</div>
+<div class="subsite-tabs">
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}">Посты</a>
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}/comments">Комментарии</a>
+</div>
+<div class="user-news">
+   <ul>
+        {% for new in news %}
+           <li>
+               <p>
+                   <a class="navbar-brand" href="/news/{{ new.id }}">{{new.title}}</a>
+                   {% if new.user_id == current_user.id %}
+                      <a class="navbar-brand" href="/news_edit/{{ new.id }}">Редактировать</a>
+                      <a class="navbar-brand" href="/news_delete/{{ new.id }}">Удалить</a>
+                   {% endif %}
+               </p>
+           </li>
+       {% endfor %}
+   </ul>
+</div>
+{% endblock %}

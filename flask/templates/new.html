@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-header">
+    <p>
+        <a class="navbar-brand" href="/user_profile/{{ new.user.id }}">{{ new.user.name }}</a>
+        {{ new.created_date }}
+    </p>
+</div>
+<h1>{{ new.title }}</h1>
+<div class="content">
+    <p>{{ new.content }}</p>
+</div>
+<div class="comments">
+    <h3>Комментарии</h3>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.content.label }}<br>
+            {{ form.content(class="form-control") }}<br>
+            {% for error in form.content.errors %}
+                <p content="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        {{message}}
+    </form>
+    {% for comment in comments %}
+       <p>
+           <a class="navbar-brand" href="/user_profile/{{ comment.user.id }}">{{ comment.user.name }}</a>
+           {{ comment.created_date }}
+       </p>
+       <p>
+           {{ comment.content }}
+           <a class="navbar-brand" href="/comment_delete/{{ comment.id }}">Удалить</a>
+       </p>
+    {% endfor %}
+</div>
+{% endblock %}

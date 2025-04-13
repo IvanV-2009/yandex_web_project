@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="user-head">
+    <h1>{{ user.name }}</h1>
+    <a class="navbar-brand" href="/settings">Настройки</a>
+</div>
+<div class="info-card">
+    <p>{{ user.create_date }}</p>
+    {% if user.abot %}
+       <p>{{ user.about }}</p>
+    {% endif %}
+</div>
+<div class="subsite-tabs">
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}">Посты</a>
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}/comments">Комментарии</a>
+</div>
+<div class="user-comments">
+   {% for comment in comments %}
+       <p>
+           {{ comment.content }}
+       </p>
+   {% endfor %}
+</div>
+{% endblock %}
