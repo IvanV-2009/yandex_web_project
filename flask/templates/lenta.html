@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Новости</h1>
-<div class="news">
-    <ul>
-        {% for new in news%}
-            <li>
-                <a class="navbar-brand" href="/news/{{ new.id }}">{{new.title}}</a>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
+
+{% for article in news %}
+    <article class="news-item">
+    <!--            <img src="{{ article.image }}" alt="{{ article.title }}">-->
+        <h2>{{ article.title }}</h2>
+        <p class="date">{{ article.created_date }}</p>
+        <p>{{ article.content[:100] }}
+        {% if article.content|length > 100 %}
+            ...
+        {% endif %}
+        </p>
+        <a class="navbar-brand" href="/news/{{ article.id }}">Читать дальше</a>
+    </article>
+{% endfor %}
+
 {% endblock %}

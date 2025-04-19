@@ -204,16 +204,6 @@ def comment_delete(id):
     return redirect(f'/news/{comment.news_id}')
 
 
-@app.route('/')
-def index():
-    db_sess = db_session.create_session()
-    news = db_sess.query(News).all()
-    form = SearchForm()
-    if form.validate_on_submit():
-        return
-    return render_template('index.html', news=news, form=form)
-
-
 @app.route('/discovery')
 def discovery():
     query = request.args.get('query', '')
