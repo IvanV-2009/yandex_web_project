@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if users %}
+    <h1>Найденные пользователи</h1>
+    <div class="found-users">
+        <ul>
+            {% for user in users%}
+                <li>
+                    <a class="navbar-brand" href="/user_profile/{{ user.id }}">{{user.name}}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% if news %}
+    <h1>Найденные новости</h1>
+    <div class="found-news">
+        {% for article in news%}
+            <article class="news-item">
+            <!--            <img src="{{ article.image }}" alt="{{ article.title }}">-->
+                <h2>{{ article.title }}</h2>
+                <p class="date">{{ article.created_date }}</p>
+                <p>{{ article.content[:100] }}
+                {% if article.content|length > 100 %}
+                    ...
+                {% endif %}
+                </p>
+                <a class="navbar-brand" href="/news/{{ article.id }}">Читать дальше</a>
+            </article>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if not users and not news %}
+    <h1>По вашему запросу ничего не найдено</h1>
+{% endif %}
+
+{% endblock %}
