@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ tag.name }}</h1>
+<div class="news">
+    <ul>
+        {% for new in news%}
+            <li>
+                <a class="navbar-brand" href="/news/{{ new.id }}">{{new.title}}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

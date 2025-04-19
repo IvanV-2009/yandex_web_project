@@ -78,7 +78,7 @@ def create_new():
 
         tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
         for name in tag_names:
-            tag = Tags.query.filter_by(name=name).first()
+            tag = db_sess.query(Tags).filter_by(name=name).first()
             if not tag:
                 tag = Tags(name=name)
                 db_sess.add(tag)
@@ -224,11 +224,11 @@ def discovery():
 
 
 @app.route('/tags/<tag_name>')
-def tags(tag):
+def news_by_tag(tag_name):
     db_sess = db_session.create_session()
-    tag1 = db_sess.query(Tags).filter(Tags.title == tag).first()
-    news = db_sess.query(News).filter(News == tag1.new).all()
-    return render_template('index.html', news=news)
+    tag = db_sess.query(Tags).filter_by(name=tag_name).first()
+    news = tag.tags_news
+    return render_template('news_by_tag.html', news=news, tag=tag)
 
 
 if __name__ == '__main__':
