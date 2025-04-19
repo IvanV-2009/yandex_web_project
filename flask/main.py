@@ -8,6 +8,8 @@ from data import db_session
 from forms.news import NewsForm
 from data.comment import Comment
 from forms.comments import CommentForm
+from forms.research_form import SearchForm
+from data.tags import Tags
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -66,13 +68,22 @@ def login():
 
 
 @app.route('/news', methods=['GET', 'POST'])
-def new():
+def create_new():
     form = NewsForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         new = News(title=form.title.data,
                    content=form.content.data,
                    user_id=current_user.id)
+
+        tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
+        for name in tag_names:
+            tag = Tags.query.filter_by(name=name).first()
+            if not tag:
+                tag = Tags(name=name)
+                db_sess.add(tag)
+            new.tags.append(tag)
+
         db_sess.add(new)
         db_sess.commit()
         return redirect('/news_log')
@@ -86,7 +97,7 @@ def logout():
     return redirect("/news_log")
 
 
-@app.route('/news_log')
+@app.route('/news_log', methods=['GET', 'POST'])
 def news_log():
     db_sess = db_session.create_session()
     news = db_sess.query(News).all()
@@ -191,6 +202,33 @@ def comment_delete(id):
     else:
         abort(404)
     return redirect(f'/news/{comment.news_id}')
+
+
+@app.route('/')
+def index():
+    db_sess = db_session.create_session()
+    news = db_sess.query(News).all()
+    form = SearchForm()
+    if form.validate_on_submit():
+        return
+    return render_template('index.html', news=news, form=form)
+
+
+@app.route('/discovery')
+def discovery():
+    query = request.args.get('query', '')
+    db_sess = db_session.create_session()
+    news = db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all()
+    users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
+    return render_template('discovery.html', news=news, users=users)
+
+
+@app.route('/tags/<tag_name>')
+def tags(tag):
+    db_sess = db_session.create_session()
+    tag1 = db_sess.query(Tags).filter(Tags.title == tag).first()
+    news = db_sess.query(News).filter(News == tag1.new).all()
+    return render_template('index.html', news=news)
 
 
 if __name__ == '__main__':

@@ -34,7 +34,9 @@
        </p>
        <p>
            {{ comment.content }}
-           <a class="navbar-brand" href="/comment_delete/{{ comment.id }}">Удалить</a>
+           {% if current_user.id == comment.user_id %}
+               <a class="navbar-brand" href="/comment_delete/{{ comment.id }}">Удалить</a>
+            {% endif %}
        </p>
     {% endfor %}
 </div>

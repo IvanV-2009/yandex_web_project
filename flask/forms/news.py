@@ -8,4 +8,5 @@ class NewsForm(FlaskForm):
     title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField("Содержание")
     is_private = BooleanField("Личное")
+    tags = StringField('Теги (через запятую)')
     submit = SubmitField('Применить')
