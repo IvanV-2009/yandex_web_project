@@ -12,11 +12,15 @@
     <p>{{ new.content }}</p>
 </div>
 <div class="tags">
-    {% for tag in new.tags %}
-        <a href="{{ url_for('news_by_tag', tag_name=tag.name) }}">
-            #{{ tag.name }}
-        </a>
-    {% endfor %}
+    {% if new.tags %}
+        {% for tag in new.tags %}
+             {% if tag.name %}
+                <a href="{{ url_for('news_by_tag', tag_name=tag.name) }}">
+                    #{{ tag.name }}
+                </a>
+             {% endif %}
+        {% endfor %}
+    {% endif %}
 </div>
 <div class="comments">
     <h3>Комментарии</h3>

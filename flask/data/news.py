@@ -12,9 +12,9 @@ class News(SqlAlchemyBase):
                            primary_key=True, autoincrement=True)
     title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     content = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    image_path = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
-    # image = sqlalchemy.Column(sqlalchemy.String)
     is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
 
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
@@ -22,4 +22,6 @@ class News(SqlAlchemyBase):
     user = orm.relationship('User')
     news_tags = orm.relationship("Tags",
                             secondary="association",
-                            backref="news")
+                            backref="news",
+                            cascade="save-update, merge",
+                            passive_deletes=True)

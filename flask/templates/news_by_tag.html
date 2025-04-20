@@ -5,7 +5,9 @@
 <div class="news">
     {% for article in news%}
         <article class="news-item">
-    <!--            <img src="{{ article.image }}" alt="{{ article.title }}">-->
+        {% if article.image_path %}
+        <img src="{{ article.image_path }}" alt="{{ article.title }}">
+        {% endif %}
         <h2>{{ article.title }}</h2>
         <p class="date">{{ article.created_date }}</p>
         <p>{{ article.content[:100] }}

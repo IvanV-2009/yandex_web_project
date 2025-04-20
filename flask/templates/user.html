@@ -18,8 +18,15 @@
 <div class="user-news">
     {% for article in news %}
         <article class="news-item">
-        <!--            <img src="{{ article.image }}" alt="{{ article.title }}">-->
-            <h2>{{ article.title }}</h2>
+            {% if article.image_path %}
+            <img src="{{ article.image_path }}" alt="{{ article.title }}">
+            {% endif %}
+            <p>
+               <h2>{{ article.title }}</h2>
+               {% if current_user.id == article.user_id %}
+                   <a class="navbar-brand" href="/news_delete/{{ article.id }}">Удалить</a>
+               {% endif %}
+            </p>
             <p class="date">{{ article.created_date }}</p>
             <p>{{ article.content[:100] }}
             {% if article.content|length > 100 %}

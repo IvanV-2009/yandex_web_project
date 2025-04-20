@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for, abort
+from flask import Flask, render_template, redirect, request, url_for, abort, send_from_directory
 from data.users import User
 from forms.user import RegisterForm
 from forms.login_form import LoginForm
@@ -8,11 +8,20 @@ from data import db_session
 from forms.news import NewsForm
 from data.comment import Comment
 from forms.comments import CommentForm
-from forms.research_form import SearchForm
 from data.tags import Tags
+from werkzeug.utils import secure_filename
+import os
+from PIL import Image
+
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+
+upload_folder = os.path.join('static', 'uploads')
+
+app.config['UPLOAD'] = upload_folder
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -83,7 +92,17 @@ def create_new():
                 tag = Tags(name=name)
                 db_sess.add(tag)
             new.tags.append(tag)
-
+        img = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD'], filename))
+                img = os.path.join(app.config['UPLOAD'], filename)
+                im = Image.open(img)
+                im.thumbnail((400, 400))
+                im.save(img)
+        new.image_path = img
         db_sess.add(new)
         db_sess.commit()
         return redirect('/news_log')
@@ -175,14 +194,15 @@ def edit_news(id):
 @login_required
 def news_delete(id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.id == id,
-                                      News.user == current_user
-                                      ).first()
+    news = db_sess.query(News).filter(News.id == id).first()
     comments = db_sess.query(Comment).filter(Comment.news_id == id).all()
     if news:
+        img = news.image_path
+        os.remove(img)
         db_sess.delete(news)
-        for i in comments:
-            db_sess.delete(i)
+        if comments:
+            for i in comments:
+                db_sess.delete(i)
         db_sess.commit()
     else:
         abort(404)

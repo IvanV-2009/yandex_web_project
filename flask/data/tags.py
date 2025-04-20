@@ -8,9 +8,9 @@ association_table = sqlalchemy.Table(
     'association',
     SqlAlchemyBase.metadata,
     sqlalchemy.Column('news', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('news.id')),
+                      sqlalchemy.ForeignKey('news.id', ondelete='CASCADE')),
     sqlalchemy.Column('tags', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('tags.id'))
+                      sqlalchemy.ForeignKey('tags.id', ondelete='CASCADE'))
 )
 
 
@@ -22,4 +22,6 @@ class Tags(SqlAlchemyBase):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     tags_news = orm.relationship("News",
                             secondary="association",
-                            backref="tags")
+                            backref="tags",
+                            cascade="save-update, merge"
+                            )
