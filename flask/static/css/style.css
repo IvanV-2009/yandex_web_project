@@ -1,67 +1,318 @@
-body {
-    font-family: Arial, sans-serif;
+/* Global Styles */
+:root {
+    --primary-color: #4285f4;
+    --secondary-color: #34a853;
+    --accent-color: #ea4335;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --gray-color: #6c757d;
+    --light-gray: #e9ecef;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
     color: #333;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
-    text-align: center;
-}
-
-header h1 {
-    margin: 0;
-}
-
-nav {
-    margin-top: 10px;
-}
-
-nav a {
-    color: #fff;
+a {
     text-decoration: none;
-    margin: 0 10px;
+    color: var(--primary-color);
+    transition: var(--transition);
 }
 
-form {
-      margin-top: 10px
+a:hover {
+    color: var(--accent-color);
 }
 
-main {
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
 }
 
-.news-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
+/* Header/Navbar Styles */
+.navbar {
+    background-color: white;
+    padding: 15px 20px;
+    box-shadow: var(--box-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--dark-color);
+}
+
+.navbar-brand:hover {
+    color: var(--primary-color);
+}
+
+.navbar form {
+    display: flex;
+    margin: 10px 0;
+}
+
+.navbar input[type="text"] {
+    padding: 8px 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    outline: none;
+    width: 250px;
+}
+
+.navbar button[type="submit"] {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.navbar button[type="submit"]:hover {
+    background-color: #3367d6;
+}
+
+.navbar p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn {
+    padding: 8px 20px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3367d6;
+}
+
+.btn-secondary {
+    background-color: var(--gray-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #2d9249;
+}
+
+/* Main Content Styles */
+main {
+    flex: 1;
+    padding: 20px 0;
+}
+
+h1, h2, h3 {
     margin-bottom: 20px;
-    padding: 15px;
+    color: var(--dark-color);
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+/* News Item Styles */
+.news-item {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.news-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .news-item img {
     max-width: 100%;
     height: auto;
-    margin-bottom: 10px;
-}
-
-.news-item h2 {
-    margin-top: 0;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    display: block;
 }
 
 .date {
-    color: #777;
-    font-size: 0.9em;
+    color: var(--gray-color);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
 }
 
-footer {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
+/* Form Styles */
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.form-control {
     width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+}
+
+.alert {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius);
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* User Profile Styles */
+.user-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.info-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 20px;
+}
+
+.subsite-tabs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.subsite-tabs a {
+    padding: 5px 0;
+    position: relative;
+}
+
+.subsite-tabs a:hover {
+    color: var(--dark-color);
+}
+
+.subsite-tabs a::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transition: var(--transition);
+}
+
+.subsite-tabs a:hover::after {
+    transform: scaleX(1);
+}
+
+/* Comments Styles */
+.comments {
+    margin-top: 30px;
+    background-color: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.comment {
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+}
+
+/* Tags Styles */
+.tags {
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tags a {
+    background-color: #e0e0e0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--dark-color);
+}
+
+.tags a:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+img {
+    height: 250px;
+    width: 250px;
+}

@@ -17,11 +17,12 @@ class News(SqlAlchemyBase):
                                      default=datetime.datetime.now)
     is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
 
+    likes = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relationship('User')
     news_tags = orm.relationship("Tags",
-                            secondary="association",
-                            backref="news",
-                            cascade="save-update, merge",
-                            passive_deletes=True)
+                                 secondary="association",
+                                 backref="news",
+                                 cascade="save-update, merge",
+                                 passive_deletes=True)

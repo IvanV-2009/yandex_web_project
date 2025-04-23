@@ -4,6 +4,7 @@
 <div class="user-head">
     <h1>{{ user.name }}</h1>
     <a class="navbar-brand" href="/settings">Настройки</a>
+    <a href="{{ url_for('subscribe', user_id=user.id) }}">Подписаться</a>
 </div>
 <div class="info-card">
     <p>{{ user.create_date }}</p>
@@ -11,6 +12,7 @@
        <p>{{ user.about }}</p>
     {% endif %}
 </div>
+Подписок: {{ user.subscription }}
 <div class="subsite-tabs">
     <a class="navbar-brand" href="/user_profile/{{ user.id }}">Посты</a>
     <a class="navbar-brand" href="/user_profile/{{ user.id }}/comments">Комментарии</a>

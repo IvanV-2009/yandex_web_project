@@ -13,8 +13,6 @@ from werkzeug.utils import secure_filename
 import os
 from PIL import Image
 
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
@@ -38,7 +36,7 @@ def main():
 
 
 @app.route('/register', methods=['GET', 'POST'])
-def reqister():
+def register():
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -239,6 +237,53 @@ def news_by_tag(tag_name):
     tag = db_sess.query(Tags).filter_by(name=tag_name).first()
     news = tag.tags_news
     return render_template('news_by_tag.html', news=news, tag=tag)
+
+
+@app.route('/like/<int:news_id>')
+@login_required
+def like(news_id):
+    db_sess = db_session.create_session()
+    news = db_sess.query(News).filter(News.id == news_id).first()
+    news.likes += 1
+    db_sess.commit()
+    return redirect(url_for('watch_new', id=news_id))
+
+
+@app.route('/subscribe/<int:user_id>')
+@login_required
+def subscribe(user_id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == user_id).first()
+    user.subscription += 1
+    db_sess.commit()
+    return redirect(url_for('user_profile', id=user_id))
+
+
+@app.route("/settings")
+@login_required
+def settings():
+    return render_template('settings.html')
+
+
+@app.route('/user_delete/<int:user_id>')
+@login_required
+def delete_account(user_id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == user_id).first()
+    news = db_sess.query(News).filter(News.user_id == user_id).all()
+    comments = db_sess.query(Comment).filter(Comment.news_id == id).all()
+    if news:
+        img = news.image_path
+        os.remove(img)
+        db_sess.delete(news)
+        db_sess.delete(user)
+        if comments:
+            for i in comments:
+                db_sess.delete(i)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect(f'/news_log')
 
 
 if __name__ == '__main__':
