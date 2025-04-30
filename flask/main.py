@@ -1,5 +1,6 @@
-from flask import Flask, render_template, redirect, request, url_for, abort, send_from_directory
+from flask import Flask, render_template, redirect, request, url_for, abort, send_from_directory, jsonify
 from data.users import User
+from data.likes import Like
 from forms.user import RegisterForm
 from forms.login_form import LoginForm
 from data.news import News
@@ -196,7 +197,8 @@ def news_delete(id):
     comments = db_sess.query(Comment).filter(Comment.news_id == id).all()
     if news:
         img = news.image_path
-        os.remove(img)
+        if os.path.exists(img):
+            os.remove(img)
         db_sess.delete(news)
         if comments:
             for i in comments:
@@ -239,23 +241,47 @@ def news_by_tag(tag_name):
     return render_template('news_by_tag.html', news=news, tag=tag)
 
 
-@app.route('/like/<int:news_id>')
+@app.route('/like/<int:new_id>')
 @login_required
-def like(news_id):
+def like_post(new_id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.id == news_id).first()
-    news.likes += 1
+    post = db_sess.query(News).get(new_id)
+    like = Like(users=current_user, news=post)
+    db_sess.add(like)
     db_sess.commit()
-    return redirect(url_for('watch_new', id=news_id))
+    return redirect(f'/news/{new_id}')
+
+
+@app.route('/unlike/<int:new_id>')
+@login_required
+def unlike_post(new_id):
+    db_sess = db_session.create_session()
+    post = db_sess.query(News).get(new_id)
+    like = db_sess.query(Like).filter_by(user_id=current_user.id, news_id=post.id)
+    db_sess.delete(like)
+    db_sess.commit()
+    return redirect(f'/news/{new_id}')
 
 
 @app.route('/subscribe/<int:user_id>')
 @login_required
 def subscribe(user_id):
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.id == user_id).first()
-    user.subscription += 1
+    user = db_sess.query(User).get(user_id)
+    user.follow(current_user)
     db_sess.commit()
+    db_sess.close()
+    return redirect(url_for('user_profile', id=user_id))
+
+
+@app.route('/unsubscribe/<int:user_id>')
+@login_required
+def unsubscribe(user_id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).get(user_id)
+    user.unfollow(current_user)
+    db_sess.commit()
+    db_sess.close()
     return redirect(url_for('user_profile', id=user_id))
 
 
@@ -274,7 +300,8 @@ def delete_account(user_id):
     comments = db_sess.query(Comment).filter(Comment.news_id == id).all()
     if news:
         img = news.image_path
-        os.remove(img)
+        if os.path.exists(img):
+            os.remove(img)
         db_sess.delete(news)
         db_sess.delete(user)
         if comments:

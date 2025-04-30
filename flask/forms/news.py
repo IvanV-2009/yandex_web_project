@@ -11,7 +11,7 @@ class NewsForm(FlaskForm):
     content = TextAreaField("Содержание")
     is_private = BooleanField("Личное")
     image = FileField('Изображение статьи', validators=[
-             FileAllowed(['jpg', 'png'], 'Только изображения!')
+             FileAllowed(['jpg', 'png', 'jpeg'], 'Только изображения!')
          ])
     tags = StringField('Теги (через запятую)')
     submit = SubmitField('Применить')

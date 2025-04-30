@@ -4,7 +4,13 @@
 <div class="user-head">
     <h1>{{ user.name }}</h1>
     <a class="navbar-brand" href="/settings">Настройки</a>
-    <a href="{{ url_for('subscribe', user_id=user.id) }}">Подписаться</a>
+    {% if user != current_user %}
+        {% if not user.is_following(current_user) %}
+            <a href="{{ url_for('subscribe', user_id=user.id) }}">Подписаться</a>
+        {% else %}
+            <a href="{{ url_for('unsubscribe', user_id=user.id) }}">Отписаться</a>
+        {% endif %}
+    {% endif %}
 </div>
 <div class="info-card">
     <p>{{ user.create_date }}</p>
@@ -12,7 +18,7 @@
        <p>{{ user.about }}</p>
     {% endif %}
 </div>
-Подписок: {{ user.subscription }}
+Подписок: {{ user.followed.count() }}
 <div class="subsite-tabs">
     <a class="navbar-brand" href="/user_profile/{{ user.id }}">Посты</a>
     <a class="navbar-brand" href="/user_profile/{{ user.id }}/comments">Комментарии</a>

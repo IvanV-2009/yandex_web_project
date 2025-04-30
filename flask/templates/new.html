@@ -22,8 +22,9 @@
         {% endfor %}
     {% endif %}
 </div>
-Лайки: {{ new.likes }}
-<a href="{{ url_for('like', news_id=new.id) }}">Лайкнуть</a>
+Количество лайков: {{ new.likes_count() }}
+<a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
+<a >
 <div class="comments">
     <h3>Комментарии</h3>
     <form action="" method="post">
