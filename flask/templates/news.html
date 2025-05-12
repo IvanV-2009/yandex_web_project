@@ -1,47 +1,93 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<h1>Добавление новости</h1>
-<form action="" enctype="multipart/form-data" method="post">
-    {{ form.hidden_tag() }}
-    <p>
-        {{ form.title.label }}<br>
-        {{ form.title(class="form-control") }}<br>
-        {% for error in form.title.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.content.label }}<br>
-        {{ form.content(class="form-control") }}<br>
-        {% for error in form.content.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.image.label }}<br>
-        {{ form.image(class="form-control") }}<br>
-        {% for error in form.image.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.tags.label }}<br>
-        {{ form.tags(class="form-control") }}<br>
-        {% for error in form.tags.errors %}
-            <p content="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>{{ form.is_private() }} {{ form.is_private.label }}</p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    {{message}}
-</form>
+<div class="editor-container">
+    <form action="{{ url_for('create_new') }}" method="post">
+        <input type="hidden" id="editor-data" name="content">
+        <input type="text" id="post-title" name="title" class="title-input"
+               placeholder="Заголовок статьи" value="{{ post.title if post }}">
+
+        <div id="editorjs" class="custom-editor"></div>
+
+        <div class="editor-footer">
+            <button type="submit" class="save-button">Сохранить</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const editor = new EditorJS({
+    holder: 'editorjs',
+    tools: {
+        paragraph: {
+            class: Paragraph,
+            inlineToolbar: true,
+        },
+        header: {
+            class: Header,
+            config: {
+                placeholder: 'Заголовок',
+                levels: [2, 3, 4],
+                defaultLevel: 2
+            }
+        },
+        image: {
+            class: ImageTool,
+            config: {
+                endpoints: {
+                    byFile: '{{ url_for("upload_file") }}',
+                }
+            }
+        },
+        list: {
+            class: List,
+            inlineToolbar: true
+        }
+    },
+    placeholder: 'Начните писать здесь...',
+    autofocus: true
+});
+
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const savedData = await editor.save();
+                document.getElementById('editor-data').value = JSON.stringify(savedData);
+                e.target.submit();
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+            }
+        });
+    });
+</script>
+<style>
+.custom-editor {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    min-height: 400px;
+    padding: 20px;
+    background: #fff;
+}
+
+/* Добавьте это чтобы исправить z-index */
+.ce-block__content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Убедитесь что нет перекрывающих элементов */
+.editor-container {
+    position: relative;
+    z-index: 0;
+}
+</style>
+
+
 {% endblock %}

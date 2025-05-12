@@ -1,36 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="content-header">
-    <p>
-        <a class="navbar-brand" href="/user_profile/{{ new.user.id }}">{{ new.user.name }}</a>
-        {{ new.created_date }}
-    </p>
-</div>
-<h1>{{ new.title }}</h1>
-<div class="content">
-    <p>{{ new.content }}</p>
-</div>
-<div class="tags">
-    {% if new.tags %}
-        {% for tag in new.tags %}
-             {% if tag.name %}
-                <a href="{{ url_for('news_by_tag', tag_name=tag.name) }}">
-                    #{{ tag.name }}
-                </a>
-             {% endif %}
-        {% endfor %}
-    {% endif %}
-</div>
-Количество лайков: {{ new.likes_count() }}
-<a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
-<form method="POST" action="{{ url_for('send_message', new_id=new.id) }}">
-    <textarea name="text" rows="3" required></textarea>
-    <input type="hidden" name="reply_to" id="reply_to" value="">
-    <button type="submit">Отправить</button>
-</form>
-<div class="comments">
-    <h3>Комментарии</h3>
+    <h2>Новое сообщение</h2>
+    <form method="POST" action="{{ url_for('send_message') }}">
+        <textarea name="text" rows="3" required></textarea>
+        <input type="hidden" name="reply_to" id="reply_to" value="">
+        <button type="submit">Отправить</button>
+    </form>
+
+    <h2>Сообщения</h2>
     {% for message in messages %}
         <div class="message">
             <div class="message-header">
@@ -59,5 +37,4 @@
             </div>
         </div>
     {% endfor %}
-</div>
 {% endblock %}

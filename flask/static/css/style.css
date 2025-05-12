@@ -316,3 +316,12 @@ img {
     height: 250px;
     width: 250px;
 }
+
+/* */
+
+.custom-editor {
+    max-height: 600px; /* Максимальная высота */
+    min-height: 400px; /* Минимальная высота */
+    overflow-y: auto;  /* Вертикальная прокрутка */
+}
+
