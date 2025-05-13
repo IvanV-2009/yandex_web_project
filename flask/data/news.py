@@ -4,6 +4,7 @@ from sqlalchemy import orm
 
 from .db_session import SqlAlchemyBase, create_session
 
+
 class News(SqlAlchemyBase):
     __tablename__ = 'news'
 
@@ -26,7 +27,8 @@ class News(SqlAlchemyBase):
                                  cascade="save-update, merge",
                                  passive_deletes=True)
 
-
     def likes_count(self):
         return len(self.likes)
 
+    def is_liked_by(self, user):
+        return self.likes.filter()

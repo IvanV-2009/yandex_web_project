@@ -27,16 +27,16 @@ class User(SqlAlchemyBase, UserMixin):
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
 
+    liked = orm.relationship('Like', foreign_keys='Like.user_id', backref='user', lazy='dynamic')
     followed = orm.relationship(
         'User',
         secondary=subscriptions,
         primaryjoin=(subscriptions.c.follower_id == id),
         secondaryjoin=(subscriptions.c.followed_id == id),
-        backref='followers',
+        backref=orm.backref('followers', lazy='dynamic'),
         lazy='dynamic'
     )
 
-    liked_posts = orm.relationship('Like', backref='users', lazy='dynamic')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
@@ -44,18 +44,11 @@ class User(SqlAlchemyBase, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
 
-    def follow(self, user):
-        if user != self and not self.is_following(user):
-            self.followed.append(user)
-            return self
-
     def is_following(self, user):
         return self.followed.filter(
             subscriptions.c.followed_id == user.id
         ).count() > 0
 
-    def unfollow(self, user):
-        if user != self and self.is_following(user):
-            self.followed.remove(user)
-            return self
+    def has_liked(self, new):
+        return self.liked.filter_by(news_id=new.id).first() is not None
 

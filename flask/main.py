@@ -11,7 +11,7 @@ from data.comment import Comment
 from data.tags import Tags
 from werkzeug.utils import secure_filename
 import os
-import bleach
+from PIL import Image
 import uuid
 import sqlite3
 
@@ -34,7 +34,6 @@ login_manager.init_app(app)
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
-
 
 
 def main():
@@ -83,23 +82,36 @@ def login():
 
 @app.route('/news', methods=['GET', 'POST'])
 def create_new():
-    if request.method == 'POST':
+    form = NewsForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        new = News(title=form.title.data,
+                   content=form.content.data,
+                   user_id=current_user.id)
 
-        title = bleach.clean(request.form['title'])
-        content = request.form['content']
-        print(1)
-        print(title)
-        print(content)
-        post = News(
-            title=title,
-            content=content,
-            user_id=current_user.id
-        )
-        db = db_session.create_session()
-        db.add(post)
-        db.commit()
-        return redirect(url_for('news_log'))
-    return render_template('news.html')
+        tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
+        for name in tag_names:
+            tag = db_sess.query(Tags).filter_by(name=name).first()
+            if not tag:
+                tag = Tags(name=name)
+                db_sess.add(tag)
+            new.tags.append(tag)
+        img = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                unique_name = f"{uuid.uuid4().hex}_{filename}"
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_name))
+                img = os.path.join(app.config['UPLOAD'], unique_name)
+                im = Image.open(img)
+                im.thumbnail((400, 400))
+                im.save(img)
+        new.image_path = img
+        db_sess.add(new)
+        db_sess.commit()
+        return redirect('/news_log')
+    return render_template('news.html', title='Новости', form=form)
 
 
 @app.route('/logout')
@@ -120,6 +132,8 @@ def news_log():
 def watch_new(id):
     db_sess = db_session.create_session()
     new = db_sess.query(News).get(id)
+    post_user = db_sess.query(User).filter(User.id == new.user_id).first()
+    current_user_obj = db_sess.query(User).get(current_user.id)
     db = get_db()
 
     # Получаем все сообщения с информацией об авторе и реакциях
@@ -128,13 +142,15 @@ def watch_new(id):
                u.name,
                (SELECT COUNT(*) FROM reactions r WHERE r.message_id = m.id AND r.reaction_type = 'like') as likes,
                (SELECT COUNT(*) FROM reactions r WHERE r.message_id = m.id AND r.reaction_type = 'dislike') as dislikes,
-               (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.user_id = ?) as user_reaction
-        FROM messages m
+               (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.user_id = ? AND r.new_id = ?) as user_reaction
+        FROM messages m 
         JOIN users u ON m.user_id = u.id
+        WHERE m.new_id = ?
         ORDER BY m.timestamp DESC
-    """, (current_user.id,)).fetchall()
+    """, (current_user.id, id, id)).fetchall()
 
-    return render_template('new.html', new=new, messages=messages)
+    return render_template('new.html', new=new, messages=messages, post_user=post_user,
+                           current_user_obj=current_user_obj)
 
 
 @app.route('/user_profile/<int:id>')
@@ -162,11 +178,13 @@ def edit_news(id):
         news = db_sess.query(News).filter(News.id == id,
                                           News.user == current_user
                                           ).first()
+
         if news:
             form.title.data = news.title
             form.content.data = news.content
         else:
             abort(404)
+
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         news = db_sess.query(News).filter(News.id == id,
@@ -179,6 +197,7 @@ def edit_news(id):
             return redirect('/news_log')
         else:
             abort(404)
+
     return render_template('news.html',
                            title='Редактирование новости',
                            form=form
@@ -202,6 +221,7 @@ def news_delete(id):
         db_sess.commit()
     else:
         abort(404)
+    db_sess.close()
     return redirect(f'/user_profile/{current_user.id}')
 
 
@@ -217,6 +237,7 @@ def comment_delete(id):
         db_sess.commit()
     else:
         abort(404)
+    db_sess.close()
     return redirect(f'/news/{comment.news_id}')
 
 
@@ -226,6 +247,7 @@ def discovery():
     db_sess = db_session.create_session()
     news = db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all()
     users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
+    db_sess.close()
     return render_template('discovery.html', news=news, users=users)
 
 
@@ -241,8 +263,12 @@ def news_by_tag(tag_name):
 @login_required
 def like_post(new_id):
     db_sess = db_session.create_session()
+
+    user = db_sess.query(User).get(current_user.id)
+
     post = db_sess.query(News).get(new_id)
-    like = Like(users=current_user, news=post)
+
+    like = Like(user_id=user.id, news_id=post.id)
     db_sess.add(like)
     db_sess.commit()
     return redirect(f'/news/{new_id}')
@@ -252,8 +278,9 @@ def like_post(new_id):
 @login_required
 def unlike_post(new_id):
     db_sess = db_session.create_session()
+    user = db_sess.query(User).get(current_user.id)
     post = db_sess.query(News).get(new_id)
-    like = db_sess.query(Like).filter_by(user_id=current_user.id, news_id=post.id)
+    like = db_sess.query(Like).filter_by(user_id=user.id, news_id=post.id).first()
     db_sess.delete(like)
     db_sess.commit()
     return redirect(f'/news/{new_id}')
@@ -263,10 +290,10 @@ def unlike_post(new_id):
 @login_required
 def subscribe(user_id):
     db_sess = db_session.create_session()
+    current_user_obj = db_sess.query(User).get(current_user.id)
     user = db_sess.query(User).get(user_id)
-    user.follow(current_user)
+    current_user_obj.followed.append(user)
     db_sess.commit()
-    db_sess.close()
     return redirect(url_for('user_profile', id=user_id))
 
 
@@ -274,10 +301,10 @@ def subscribe(user_id):
 @login_required
 def unsubscribe(user_id):
     db_sess = db_session.create_session()
+    current_user_obj = db_sess.query(User).get(current_user.id)
     user = db_sess.query(User).get(user_id)
-    user.unfollow(current_user)
+    current_user_obj.followed.remove(user)
     db_sess.commit()
-    db_sess.close()
     return redirect(url_for('user_profile', id=user_id))
 
 
@@ -306,6 +333,7 @@ def delete_account(user_id):
         db_sess.commit()
     else:
         abort(404)
+    db_sess.close()
     return redirect(f'/news_log')
 
 
@@ -390,7 +418,7 @@ def send_message(new_id):
 
     db = get_db()
     db.execute(
-        'INSERT INTO messages (user_id, text, reply_to, new_id) VALUES (?, ?, ?)',
+        'INSERT INTO messages (user_id, text, reply_to, new_id) VALUES (?, ?, ?, ?)',
         (current_user.id, text, reply_to, new_id)
     )
     db.commit()
@@ -398,8 +426,8 @@ def send_message(new_id):
     return redirect(url_for('watch_new', id=new_id))
 
 
-@app.route('/react/<int:message_id>/<reaction_type>')
-def react(message_id, reaction_type):
+@app.route('/react/<int:new_id>/<int:message_id>/<reaction_type>')
+def react(new_id, message_id, reaction_type):
     db = get_db()
 
     # Удаляем предыдущую реакцию пользователя на это сообщение
@@ -411,12 +439,12 @@ def react(message_id, reaction_type):
     # Добавляем новую реакцию
     if reaction_type in ('like', 'dislike'):
         db.execute(
-            'INSERT INTO reactions (message_id, user_id, reaction_type) VALUES (?, ?, ?)',
-            (message_id, current_user.id, reaction_type)
+            'INSERT INTO reactions (message_id, user_id, reaction_type, new_id) VALUES (?, ?, ?, ?)',
+            (message_id, current_user.id, reaction_type, new_id)
         )
 
     db.commit()
-    return redirect(url_for('news_log'))
+    return redirect(url_for('watch_new', id=new_id))
 
 
 if __name__ == '__main__':

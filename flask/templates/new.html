@@ -23,7 +23,11 @@
     {% endif %}
 </div>
 Количество лайков: {{ new.likes_count() }}
+{% if current_user_obj.has_liked(new) %}
+<a href="{{ url_for('unlike_post', new_id=new.id) }}">Убрать лайк</a>
+{% else %}
 <a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
+{% endif %}
 <form method="POST" action="{{ url_for('send_message', new_id=new.id) }}">
     <textarea name="text" rows="3" required></textarea>
     <input type="hidden" name="reply_to" id="reply_to" value="">
@@ -43,11 +47,11 @@
             <p>{{ message['text'] }}</p>
 
             <div class="message-actions">
-                <a href="{{ url_for('react', message_id=message['id'], reaction_type='like') }}">
+                <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='like') }}">
                     Лайк ({{ message['likes'] }})
                 </a>
                 |
-                <a href="{{ url_for('react', message_id=message['id'], reaction_type='dislike') }}">
+                <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='dislike') }}">
                     Дизлайк ({{ message['dislikes'] }})
                 </a>
                 |
