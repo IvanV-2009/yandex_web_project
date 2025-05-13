@@ -1,58 +1,48 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-{% if users %}
-    <div class="search-results">
-        <h1>Найденные пользователи</h1>
-        <div class="results-block">
-            <div class="users-list">
-                {% for user in users %}
-                    <div class="result-item user-item">
-                        <a href="/user_profile/{{ user.id }}" class="user-link">
-                            <div class="user-info">
-                                <div class="avatar-placeholder">{{ user.name|first|upper }}</div>
-                                <div class="user-details">
-                                    <h3>{{ user.name }}</h3>
-                                    <p class="meta">Зарегистрирован: {{ user.created_date.strftime('%d.%m.%Y') }}</p>
-                                </div>
-                            </div>
-                            <span class="follow-status">
-                                {% if current_user.is_following(user) %}
-                                    ✓ Подписан
-                                {% endif %}
-                            </span>
-                        </a>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-{% if news %}
-    <h1>Найденные новости</h1>
-    <div class="found-news">
-        {% for article in news %}
-            <article class="news-item">
-                {% if article.image_path %}
-                <img src="{{ article.image_path }}" alt="{{ article.title }}">
-                {% endif %}
-                <h2>{{ article.title }}</h2>
-                <p class="date">{{ article.created_date }}</p>
-                <p>{{ article.content[:100] }}
-                {% if article.content|length > 100 %}
-                    ...
-                {% endif %}
-                </p>
-                <a class="navbar-brand" href="/news/{{ article.id }}">Читать дальше</a>
-            </article>
-        {% endfor %}
-    </div>
-{% endif %}
-
-{% if not users and not news %}
-    <h1 class="no-results">По вашему запросу ничего не найдено</h1>
-{% endif %}
-
+<div class="user-head">
+    <h1>{{ user.name }}</h1>
+    <a class="navbar-brand" href="/settings">Настройки</a>
+    {% if user != current_user %}
+        {% if not current_user.is_following(user) %}
+            <a href="{{ url_for('subscribe', user_id=user.id) }}">Подписаться</a>
+        {% else %}
+            <a href="{{ url_for('unsubscribe', user_id=user.id) }}">Отписаться</a>
+        {% endif %}
+    {% endif %}
+</div>
+<div class="info-card">
+    <p>{{ user.create_date }}</p>
+    {% if user.abot %}
+       <p>{{ user.about }}</p>
+    {% endif %}
+</div>
+Подписок: {{  user.followers.count() }}
+<div class="subsite-tabs">
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}">Посты</a>
+    <a class="navbar-brand" href="/user_profile/{{ user.id }}/comments">Комментарии</a>
+</div>
+<div class="user-news">
+    {% for article in news %}
+        <article class="news-item">
+            {% if article.image_path %}
+            <img src="../{{ article.image_path }}" alt="{{ article.title }}">
+            {% endif %}
+            <p>
+               <h2>{{ article.title }}</h2>
+               {% if current_user.id == article.user_id %}
+                   <a class="navbar-brand" href="/news_delete/{{ article.id }}">Удалить</a>
+               {% endif %}
+            </p>
+            <p class="date">{{ article.created_date.strftime('%d.%m.%Y %H:%M') }}</p>
+            <p>{{ article.content[:100] }}
+            {% if article.content|length > 100 %}
+                ...
+            {% endif %}
+            </p>
+            <a class="navbar-brand" href="/news/{{ article.id }}">Читать дальше</a>
+        </article>
+    {% endfor %}
+</div>
 {% endblock %}

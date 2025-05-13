@@ -11,7 +11,6 @@ from data.comment import Comment
 from data.tags import Tags
 from werkzeug.utils import secure_filename
 import os
-from PIL import Image
 import uuid
 import sqlite3
 
@@ -73,6 +72,8 @@ def login():
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+            session['user_id'] = user.id
+            session['username'] = user.name
             return redirect("/news_log")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
@@ -104,9 +105,6 @@ def create_new():
                 unique_name = f"{uuid.uuid4().hex}_{filename}"
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_name))
                 img = os.path.join(app.config['UPLOAD'], unique_name)
-                im = Image.open(img)
-                im.thumbnail((400, 400))
-                im.save(img)
         new.image_path = img
         db_sess.add(new)
         db_sess.commit()
@@ -118,6 +116,7 @@ def create_new():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     return redirect("/news_log")
 
 
@@ -133,7 +132,7 @@ def watch_new(id):
     db_sess = db_session.create_session()
     new = db_sess.query(News).get(id)
     post_user = db_sess.query(User).filter(User.id == new.user_id).first()
-    current_user_obj = db_sess.query(User).get(current_user.id) if current_user else None
+    current_user_obj = db_sess.query(User).get(current_user.id) if current_user.is_authenticated else None
     db = get_db()
 
     # Получаем все сообщения с информацией об авторе и реакциях
@@ -142,13 +141,12 @@ def watch_new(id):
                u.name,
                (SELECT COUNT(*) FROM reactions r WHERE r.message_id = m.id AND r.reaction_type = 'like') as likes,
                (SELECT COUNT(*) FROM reactions r WHERE r.message_id = m.id AND r.reaction_type = 'dislike') as dislikes,
-               (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.user_id = ? AND r.new_id = ?) as user_reaction
+               (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.new_id = ?) as user_reaction
         FROM messages m 
         JOIN users u ON m.user_id = u.id
         WHERE m.new_id = ?
         ORDER BY m.timestamp DESC
-    """, (current_user.id, id, id)).fetchall()
-
+    """, (id, id)).fetchall()
     return render_template('new.html', new=new, messages=messages, post_user=post_user,
                            current_user_obj=current_user_obj)
 
@@ -165,8 +163,18 @@ def user_profile(id):
 def user_profile_comments(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).get(id)
-    comments = db_sess.query(Comment).filter(Comment.user_id == id).all()
-    return render_template('user_comments.html', user=user, comments=comments)
+    db = get_db()
+    messages = db.execute("""
+        SELECT m.id, m.text, m.timestamp, m.reply_to, 
+               u.name,
+               (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.user_id = ?) as user_reaction
+        FROM messages m 
+        JOIN users u ON m.user_id = u.id
+        WHERE m.user_id = ?
+        ORDER BY m.timestamp DESC
+    """, (id, id)).fetchall()
+    print(messages)
+    return render_template('user_comments.html', user=user, comments=messages)
 
 
 @app.route('/news_edit/<int:id>', methods=['GET', 'POST'])
@@ -228,17 +236,15 @@ def news_delete(id):
 @app.route('/comment_delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def comment_delete(id):
-    db_sess = db_session.create_session()
-    comment = db_sess.query(Comment).filter(Comment.id == id,
-                                            Comment.user == current_user
-                                            ).first()
-    if comment:
-        db_sess.delete(comment)
-        db_sess.commit()
-    else:
-        abort(404)
-    db_sess.close()
-    return redirect(f'/news/{comment.news_id}')
+    db = get_db()
+
+    # Удаляем предыдущую реакцию пользователя на это сообщение
+    db.execute(
+        'DELETE FROM messages WHERE message_id = ? AND user_id = ?',
+        (id, current_user.id)
+    )
+
+    return redirect(f'/user_profile/{id}/comments')
 
 
 @app.route('/discovery')
@@ -413,6 +419,9 @@ init_db()
 
 @app.route('/send_message/<int:new_id>', methods=['POST'])
 def send_message(new_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     text = request.form['text']
     reply_to = request.form.get('reply_to', type=int)
 
@@ -428,6 +437,9 @@ def send_message(new_id):
 
 @app.route('/react/<int:new_id>/<int:message_id>/<reaction_type>')
 def react(new_id, message_id, reaction_type):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
     db = get_db()
 
     # Удаляем предыдущую реакцию пользователя на это сообщение
@@ -449,3 +461,5 @@ def react(new_id, message_id, reaction_type):
 
 if __name__ == '__main__':
     main()
+# static\uploads\d9e8226e92ee450a9c669adf094be84a_e94d8d97-ed07-5302-8a97-1e491df6d0e7.jpeg
+# static\uploads\d9e8226e92ee450a9c669adf094be84a_e94d8d97-ed07-5302-8a97-1e491df6d0e7.jpeg

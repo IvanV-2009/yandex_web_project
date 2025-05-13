@@ -23,10 +23,12 @@
     {% endif %}
 </div>
 Количество лайков: {{ new.likes_count() }}
-{% if current_user_obj.has_liked(new) %}
-<a href="{{ url_for('unlike_post', new_id=new.id) }}">Убрать лайк</a>
-{% else %}
-<a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
+{% if current_user.is_authenticated %}
+    {% if current_user_obj.has_liked(new) %}
+    <a href="{{ url_for('unlike_post', new_id=new.id) }}">Убрать лайк</a>
+    {% else %}
+    <a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
+    {% endif %}
 {% endif %}
 <form method="POST" action="{{ url_for('send_message', new_id=new.id) }}">
     <textarea name="text" rows="3" required></textarea>
@@ -38,7 +40,7 @@
     {% for message in messages %}
         <div class="message">
             <div class="message-header">
-                <span><strong>{{ message['username'] }}</strong></span>
+                <span><strong>{{ message['name'] }}</strong></span>
                 <span>{{ message['timestamp'] }}</span>
             </div>
             {% if message['reply_to'] %}
