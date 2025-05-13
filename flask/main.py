@@ -133,7 +133,7 @@ def watch_new(id):
     db_sess = db_session.create_session()
     new = db_sess.query(News).get(id)
     post_user = db_sess.query(User).filter(User.id == new.user_id).first()
-    current_user_obj = db_sess.query(User).get(current_user.id)
+    current_user_obj = db_sess.query(User).get(current_user.id) if current_user else None
     db = get_db()
 
     # Получаем все сообщения с информацией об авторе и реакциях
