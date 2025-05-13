@@ -24,7 +24,7 @@
                 <img src="{{ article.image_path }}" alt="{{ article.title }}">
                 {% endif %}
                 <h2>{{ article.title }}</h2>
-                <p class="date">{{ article.created_date }}</p>
+                <p class="date">{{ article.created_date.strftime('%d.%m.%Y %H:%M') }}</p>
                 <p>{{ article.content[:100] }}
                 {% if article.content|length > 100 %}
                     ...

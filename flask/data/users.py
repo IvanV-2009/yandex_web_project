@@ -37,7 +37,6 @@ class User(SqlAlchemyBase, UserMixin):
         lazy='dynamic'
     )
 
-
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
 
@@ -51,4 +50,3 @@ class User(SqlAlchemyBase, UserMixin):
 
     def has_liked(self, new):
         return self.liked.filter_by(news_id=new.id).first() is not None
-

@@ -4,7 +4,7 @@
 <div class="content-header">
     <p>
         <a class="navbar-brand" href="/user_profile/{{ new.user.id }}">{{ new.user.name }}</a>
-        {{ new.created_date }}
+        {{ new.created_date.strftime('%d.%m.%Y %H:%M') }}
     </p>
 </div>
 <h1>{{ new.title }}</h1>
@@ -65,3 +65,4 @@
     {% endfor %}
 </div>
 {% endblock %}
+
