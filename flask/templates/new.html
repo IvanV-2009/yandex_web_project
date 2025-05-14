@@ -13,22 +13,22 @@
 </div>
 <div class="tags">
     {% if new.tags %}
-        {% for tag in new.tags %}
-             {% if tag.name %}
-                <a href="{{ url_for('news_by_tag', tag_name=tag.name) }}">
-                    #{{ tag.name }}
-                </a>
-             {% endif %}
-        {% endfor %}
+    {% for tag in new.tags %}
+    {% if tag.name %}
+    <a href="{{ url_for('news_by_tag', tag_name=tag.name) }}">
+        #{{ tag.name }}
+    </a>
+    {% endif %}
+    {% endfor %}
     {% endif %}
 </div>
 Количество лайков: {{ new.likes_count() }}
 {% if current_user.is_authenticated %}
-    {% if current_user_obj.has_liked(new) %}
-    <a href="{{ url_for('unlike_post', new_id=new.id) }}">Убрать лайк</a>
-    {% else %}
-    <a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
-    {% endif %}
+{% if current_user_obj.has_liked(new) %}
+<a href="{{ url_for('unlike_post', new_id=new.id) }}">Убрать лайк</a>
+{% else %}
+<a href="{{ url_for('like_post', new_id=new.id) }}">Лайкнуть</a>
+{% endif %}
 {% endif %}
 <form method="POST" action="{{ url_for('send_message', new_id=new.id) }}">
     <textarea name="text" rows="3" required></textarea>
@@ -38,32 +38,32 @@
 <div class="comments">
     <h3>Комментарии</h3>
     {% for message in messages %}
-        <div class="message">
-            <div class="message-header">
-                <span><strong>{{ message['name'] }}</strong></span>
-                <span>{{ message['timestamp'] }}</span>
-            </div>
-            {% if message['reply_to'] %}
-                <p><em>Ответ на сообщение #{{ message['reply_to'] }}</em></p>
-            {% endif %}
-            <p>{{ message['text'] }}</p>
+    <div class="message">
+        <div class="message-header">
+            <span><strong>{{ message['name'] }}</strong></span>
+            <span>{{ message['timestamp'] }}</span>
+        </div>
+        {% if message['reply_to'] %}
+        <p><em>Ответ на сообщение #{{ message['reply_to'] }}</em></p>
+        {% endif %}
+        <p>{{ message['text'] }}</p>
 
-            <div class="message-actions">
-                <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='like') }}">
-                    Лайк ({{ message['likes'] }})
-                </a>
-                |
-                <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='dislike') }}">
-                    Дизлайк ({{ message['dislikes'] }})
-                </a>
-                |
-                <button onclick="document.getElementById('reply_to').value = '{{ message['id'] }}';
+        <div class="message-actions">
+            <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='like') }}">
+                Лайк ({{ message['likes'] }})
+            </a>
+            |
+            <a href="{{ url_for('react', new_id=new.id, message_id=message['id'], reaction_type='dislike') }}">
+                Дизлайк ({{ message['dislikes'] }})
+            </a>
+            |
+            <button onclick="document.getElementById('reply_to').value = '{{ message['id'] }}';
                                 document.querySelector('textarea').focus();
                                 document.querySelector('textarea').placeholder = 'Ответ на сообщение от {{ message['username'] }}...'">
-                    Ответить
-                </button>
-            </div>
+                Ответить
+            </button>
         </div>
+    </div>
     {% endfor %}
 </div>
 {% endblock %}

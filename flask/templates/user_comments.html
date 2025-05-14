@@ -28,6 +28,11 @@
         <div class="message-header">
             <span><strong>{{ message['name'] }}</strong></span>
             <span>{{ message['timestamp'] }}</span>
+            {% if current_user.is_authenticated and current_user.id == message['user_id'] %}
+            <a href="{{ url_for('comment_delete', id=message['id']) }}"
+               class="delete-comment"
+               title="Удалить комментарий">Удалить</a>
+            {% endif %}
         </div>
         <div>
              {% if message['reply_to'] %}

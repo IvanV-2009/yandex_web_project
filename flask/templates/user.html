@@ -3,7 +3,9 @@
 {% block content %}
 <div class="user-head">
     <h1>{{ user.name }}</h1>
+    {% if user == current_user %}
     <a class="navbar-brand" href="/settings">Настройки</a>
+    {% endif %}
     {% if user != current_user %}
         {% if not current_user.is_following(user) %}
             <a href="{{ url_for('subscribe', user_id=user.id) }}">Подписаться</a>
@@ -31,8 +33,11 @@
             {% endif %}
             <p>
                <h2>{{ article.title }}</h2>
-               {% if current_user.id == article.user_id %}
-                   <a class="navbar-brand" href="/news_delete/{{ article.id }}">Удалить</a>
+               {% if current_user.is_authenticated and current_user.id == article.user_id %}
+                   <p>
+                       <a class="navbar-brand" href="/news_delete/{{ article.id }}">Удалить</a>
+                       <a class="navbar-brand" href="/news_edit/{{ article.id }}">Редактировать</a>
+                   </p>
                {% endif %}
             </p>
             <p class="date">{{ article.created_date.strftime('%d.%m.%Y %H:%M') }}</p>

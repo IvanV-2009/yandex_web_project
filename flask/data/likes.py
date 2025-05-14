@@ -11,6 +11,6 @@ class Like(SqlAlchemyBase):
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"), primary_key=True)
     news_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("news.id"), primary_key=True)
+                                sqlalchemy.ForeignKey("news.id", ondelete='CASCADE'), primary_key=True)
 
 

@@ -123,7 +123,7 @@ def logout():
 @app.route('/news_log', methods=['GET', 'POST'])
 def news_log():
     db_sess = db_session.create_session()
-    news = db_sess.query(News).all()
+    news = sorted(db_sess.query(News).all(), key=lambda x: x.created_date)[::-1]
     return render_template('lenta.html', news=news)
 
 
@@ -165,7 +165,7 @@ def user_profile_comments(id):
     user = db_sess.query(User).get(id)
     db = get_db()
     messages = db.execute("""
-        SELECT m.id, m.text, m.timestamp, m.reply_to, 
+        SELECT m.id, m.text, m.timestamp, m.reply_to, m.user_id,
                u.name,
                (SELECT r.reaction_type FROM reactions r WHERE r.message_id = m.id AND r.user_id = ?) as user_reaction
         FROM messages m 
@@ -173,7 +173,6 @@ def user_profile_comments(id):
         WHERE m.user_id = ?
         ORDER BY m.timestamp DESC
     """, (id, id)).fetchall()
-    print(messages)
     return render_template('user_comments.html', user=user, comments=messages)
 
 
@@ -190,6 +189,8 @@ def edit_news(id):
         if news:
             form.title.data = news.title
             form.content.data = news.content
+            sp = [tag.name for tag in news.news_tags]
+            form.tags.data = ', '.join(sp)
         else:
             abort(404)
 
@@ -215,21 +216,26 @@ def edit_news(id):
 @app.route('/news_delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_delete(id):
+    db = get_db()
+
+    db.execute(
+        'DELETE FROM messages WHERE new_id = ?',
+        (id,)
+    )
+    db.commit()
+    db.close()
+
     db_sess = db_session.create_session()
     news = db_sess.query(News).get(id)
-    comments = db_sess.query(Comment).filter(Comment.news_id == id).all()
     if news:
         img = news.image_path
-        if os.path.exists(img):
+        if img and os.path.exists(img):
             os.remove(img)
         db_sess.delete(news)
-        if comments:
-            for i in comments:
-                db_sess.delete(i)
         db_sess.commit()
     else:
         abort(404)
-    db_sess.close()
+
     return redirect(f'/user_profile/{current_user.id}')
 
 
@@ -238,12 +244,11 @@ def news_delete(id):
 def comment_delete(id):
     db = get_db()
 
-    # Удаляем предыдущую реакцию пользователя на это сообщение
     db.execute(
-        'DELETE FROM messages WHERE message_id = ? AND user_id = ?',
+        'DELETE FROM messages WHERE id = ? AND user_id = ?',
         (id, current_user.id)
     )
-
+    db.commit()
     return redirect(f'/user_profile/{id}/comments')
 
 
@@ -251,7 +256,7 @@ def comment_delete(id):
 def discovery():
     query = request.args.get('query', '')
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all()
+    news = sorted(db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all(), key=lambda x: x.created_date)[::-1]
     users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
     db_sess.close()
     return render_template('discovery.html', news=news, users=users)
@@ -261,7 +266,7 @@ def discovery():
 def news_by_tag(tag_name):
     db_sess = db_session.create_session()
     tag = db_sess.query(Tags).filter_by(name=tag_name).first()
-    news = tag.tags_news
+    news = sorted(tag.tags_news, key=lambda x: x.created_date)[::-1]
     return render_template('news_by_tag.html', news=news, tag=tag)
 
 
@@ -461,5 +466,3 @@ def react(new_id, message_id, reaction_type):
 
 if __name__ == '__main__':
     main()
-# static\uploads\d9e8226e92ee450a9c669adf094be84a_e94d8d97-ed07-5302-8a97-1e491df6d0e7.jpeg
-# static\uploads\d9e8226e92ee450a9c669adf094be84a_e94d8d97-ed07-5302-8a97-1e491df6d0e7.jpeg

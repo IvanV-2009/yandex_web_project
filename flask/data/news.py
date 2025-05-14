@@ -17,7 +17,7 @@ class News(SqlAlchemyBase):
                                      default=datetime.datetime.now)
     is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
 
-    likes = orm.relationship('Like', backref='news')
+    likes = orm.relationship('Like', backref='news', cascade='all, delete')
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relationship('User')
