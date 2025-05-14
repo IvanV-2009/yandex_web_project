@@ -249,14 +249,15 @@ def comment_delete(id):
         (id, current_user.id)
     )
     db.commit()
-    return redirect(f'/user_profile/{id}/comments')
+    return redirect(url_for('user_profile_comments', id=current_user.id))
 
 
 @app.route('/discovery')
 def discovery():
     query = request.args.get('query', '')
     db_sess = db_session.create_session()
-    news = sorted(db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all(), key=lambda x: x.created_date)[::-1]
+    news = sorted(db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all(),
+                  key=lambda x: x.created_date)[::-1]
     users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
     db_sess.close()
     return render_template('discovery.html', news=news, users=users)
@@ -462,6 +463,10 @@ def react(new_id, message_id, reaction_type):
 
     db.commit()
     return redirect(url_for('watch_new', id=new_id))
+
+@app.route('/')
+def index():
+    return redirect('/news_log')
 
 
 if __name__ == '__main__':

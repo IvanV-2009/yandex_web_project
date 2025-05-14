@@ -44,6 +44,9 @@ class User(SqlAlchemyBase, UserMixin):
         return check_password_hash(self.hashed_password, password)
 
     def is_following(self, user):
+        if user is None:
+            return False
+
         return self.followed.filter(
             subscriptions.c.followed_id == user.id
         ).count() > 0
