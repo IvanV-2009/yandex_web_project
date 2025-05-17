@@ -191,6 +191,7 @@ def edit_news(id):
             form.content.data = news.content
             sp = [tag.name for tag in news.news_tags]
             form.tags.data = ', '.join(sp)
+            form.image.data = news.image_path
         else:
             abort(404)
 
@@ -202,6 +203,28 @@ def edit_news(id):
         if news:
             news.title = form.title.data
             news.content = form.content.data
+            tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
+            for name in tag_names:
+                tag = db_sess.query(Tags).filter_by(name=name).first()
+                if not tag:
+                    tag = Tags(name=name)
+                    db_sess.add(tag)
+                news.tags.append(tag)
+
+            if form.image.data:
+                if news.image_path:
+                    try:
+                        os.remove(os.path.join(app.root_path, news.image_path))
+                    except FileNotFoundError:
+                        pass
+
+                file = form.image.data
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4().hex}_{filename}"
+                    save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(save_path)
+                    news.image_path = save_path
             db_sess.commit()
             return redirect('/news_log')
         else:
@@ -254,13 +277,23 @@ def comment_delete(id):
 
 @app.route('/discovery')
 def discovery():
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').strip().lower()
+    print(query)
     db_sess = db_session.create_session()
-    news = sorted(db_sess.query(News).filter(News.title.ilike(f'%{query}%') | News.content.ilike(f'%{query}%')).all(),
-                  key=lambda x: x.created_date)[::-1]
-    users = db_sess.query(User).filter(User.name.ilike(f'%{query}%')).all()
+    news = sorted(db_sess.query(News).all(), key=lambda x: x.created_date)[::-1]
+    sp_news = []
+    for new in news:
+        if query in new.title.lower() or query in new.content.lower():
+            sp_news.append(new)
+
+    users = db_sess.query(User).all()
+    sp_users = []
+    for user in users:
+        if query in user.name.lower():
+            sp_users.append(user)
+
     db_sess.close()
-    return render_template('discovery.html', news=news, users=users)
+    return render_template('discovery.html', news=sp_news, users=sp_users)
 
 
 @app.route('/tags/<tag_name>')

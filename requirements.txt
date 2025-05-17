@@ -2,4 +2,3 @@ flask
 flask-wtf
 flask-sqlalchemy
 flask-login
-sqlite3
