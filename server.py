@@ -90,7 +90,7 @@ def create_new():
                    content=form.content.data,
                    user_id=current_user.id)
 
-        tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
+        tag_names = set([t.strip().lower() for t in form.tags.data.split(',')])
         for name in tag_names:
             tag = db_sess.query(Tags).filter_by(name=name).first()
             if not tag:
@@ -203,7 +203,8 @@ def edit_news(id):
         if news:
             news.title = form.title.data
             news.content = form.content.data
-            tag_names = [t.strip().lower() for t in form.tags.data.split(',')]
+            tag_names = set([t.strip().lower() for t in form.tags.data.split(',')])
+            news.tags.clear()
             for name in tag_names:
                 tag = db_sess.query(Tags).filter_by(name=name).first()
                 if not tag:

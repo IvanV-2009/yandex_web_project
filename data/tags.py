@@ -8,9 +8,9 @@ association_table = sqlalchemy.Table(
     'association',
     SqlAlchemyBase.metadata,
     sqlalchemy.Column('news', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('news.id', ondelete='CASCADE')),
+                      sqlalchemy.ForeignKey('news.id', ondelete='CASCADE'), primary_key=True),
     sqlalchemy.Column('tags', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('tags.id', ondelete='CASCADE'))
+                      sqlalchemy.ForeignKey('tags.id', ondelete='CASCADE'), primary_key=True)
 )
 
 
