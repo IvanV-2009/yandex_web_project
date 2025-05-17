@@ -226,7 +226,7 @@ def edit_news(id):
                     file.save(save_path)
                     news.image_path = save_path
             db_sess.commit()
-            return redirect('/news_log')
+            return redirect(f'/user_profile/{current_user.id}')
         else:
             abort(404)
 
